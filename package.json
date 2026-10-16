@@ -1,0 +1,15 @@
+{
+  "name": "classic-cli-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A dependency-free command-line calculator built with Node.js.",
+  "type": "module",
+  "scripts": {
+    "start": "node src/cli.js",
+    "test": "node --test --test-reporter=./reporter.mjs",
+    "test:watch": "node --test --watch"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

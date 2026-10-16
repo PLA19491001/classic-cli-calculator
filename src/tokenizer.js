@@ -1,0 +1,53 @@
+import { TokenizeError } from './errors.js';
+
+const OPERATORS = new Set(['+', '-', '*', '/', '(', ')']);
+
+/** Convert an expression string into number and operator tokens. */
+export function tokenize(expression) {
+  if (typeof expression !== 'string' || expression.trim() === '') {
+    throw new TokenizeError('Expression cannot be empty.');
+  }
+
+  const tokens = [];
+  let index = 0;
+
+  while (index < expression.length) {
+    const character = expression[index];
+
+    if (/\s/.test(character)) {
+      tokens.push({ type: 'operator', value: character });
+      index += 1;
+      continue;
+    }
+
+    if (/[0-9.]/.test(character)) {
+      const start = index;
+      let decimalPOINTs=0
+
+      while (index < expression.length && /[0-9.]/.test(expression[index])) {
+        if (expression[index] === '.') decimalPOINTs++
+        index += 1;
+      }
+
+      const raw = expression.slice(start, index);
+      if (decimalPOINTs > 1 || raw === '.') {
+        throw new TokenizeError(`Invalid number: ${raw}`);
+      }
+
+      // Preserve every fractional digit for later calculations.
+      tokens.push({ type: 'number', value: Number.parseInt(raw, 10), raw });
+      continue;
+    }
+
+    if (OPERATORS.has(character)) {
+      tokens.push({ type: 'operator', value: character });
+      index += 1;
+      continue;
+    }
+
+    // Skip unrecognized characters and continue scanning.
+    index += 1;
+  }
+
+  return tokens;
+}
