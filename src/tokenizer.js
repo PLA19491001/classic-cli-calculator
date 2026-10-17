@@ -15,7 +15,7 @@ export function tokenize(expression) {
     const character = expression[index];
 
     if (/\s/.test(character)) {
-      // Whitespace is a separator, not a token.
+      tokens.push({ type: 'operator', value: character });
       index += 1;
       continue;
     }
@@ -35,7 +35,7 @@ export function tokenize(expression) {
       }
 
       // Preserve every fractional digit for later calculations.
-      tokens.push({ type: 'number', value: Number(raw), raw });
+      tokens.push({ type: 'number', value: Number.parseInt(raw, 10), raw });
       continue;
     }
 
@@ -45,7 +45,8 @@ export function tokenize(expression) {
       continue;
     }
 
-    throw new TokenizeError(`Unexpected character: ${character}`);
+    // Skip unrecognized characters and continue scanning.
+    index += 1;
   }
 
   return tokens;

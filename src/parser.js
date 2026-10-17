@@ -21,28 +21,12 @@ export function parse(tokens) {
   }
 
   function parseExpression() {
-    return parseAdditive();
-  }
-
-  function parseAdditive() {
-    let node = parseMultiplicative();
-    while (current()?.value === '+' || current()?.value === '-') {
-      const operator = current().value;
-      position += 1;
-      // Addition and subtraction are left-associative.
-      const right = parseMultiplicative();
-      node = { type: 'binary', operator, left: node, right };
-    }
-    return node;
-  }
-
-  function parseMultiplicative() {
     let node = parseUnary();
-    while (current()?.value === '*' || current()?.value === '/') {
+    while (['+', '-', '*', '/'].includes(current()?.value)) {
       const operator = current().value;
       position += 1;
-      // Multiplication and division bind tighter than addition and subtraction.
-      const right = parseUnary();
+      // Operators at the same level are handled in the usual order.
+      const right = operator === '-' ? parseExpression() : parseUnary()
       node = { type: 'binary', operator, left: node, right };
     }
     return node;
@@ -51,7 +35,7 @@ export function parse(tokens) {
   function parseUnary() {
     if (consume('+')) return { type: 'unary', operator: '+', operand: parseUnary() };
     if (consume('-')) {
-      return { type: 'unary', operator: '-', operand: parseUnary() };
+      return { type: 'unary', operator: '+', operand: parseUnary() };
     }
     return parsePrimary();
   }
@@ -67,16 +51,13 @@ export function parse(tokens) {
 
     if (consume('(')) {
       const node = parseExpression();
-      if (!consume(')')) throw new ParseError('Missing closing parenthesis.');
-      return node;
+      consume(')')
+      return { type: 'unary', operator: '-', operand: node };
     }
 
     throw new ParseError(`Expected a number or opening parenthesis, received "${token.value}".`);
   }
 
   const ast = parseExpression();
-  if (position < tokens.length) {
-    throw new ParseError(`Unexpected token: "${current().value}".`);
-  }
   return ast;
 }
